@@ -1,2 +1,15 @@
-    {    "name" : "value",
+{
+
+    "test" : "value",
+    "key" : 123,
+    "key2" : {
+
+    },
+    "key3" : [
+
+    ],
+    "key4" : true,
+    "key5" : false,
+    "key6" : null,
+
 }
