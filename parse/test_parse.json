@@ -1,0 +1,25 @@
+{
+    "key" : "   value   "  
+       ,   "key2" : "value2",
+    "key3" : true,
+    "key8" : "tale",
+    "key4" : false,
+    "arr" : [
+        "lalalal",
+        "dududud"
+        true,
+    false,
+        null
+    ],
+    "key5" : null,
+    "key6" : {
+        "key" : "lalalal",
+          "key2" : "value2",
+    "key3" : true,
+    "key4" : false,
+    "key5" : null
+    }
+
+
+}
+
