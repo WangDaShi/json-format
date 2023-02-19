@@ -26,11 +26,6 @@ func check(err error) {
 	}
 }
 
-// func ParseFile(path string) (myjson.JsonObject, error) {
-//     content := readFileToString(path)
-//     return Parse(content)
-// }
-
 func Parse(content string) (myjson.JsonObject, error) {
 	runes := []rune(content)
 	ctx := jsonContex{Runes: runes, Index: 0}
@@ -83,12 +78,10 @@ func readArr(ctx *jsonContex) (myjson.ArrayValue, error) {
 		return myjson.ArrayValue{Arr: arr}, nil
 	}
 	for curr != ']' {
-        println(curr)
 		value, err := readValue(ctx, 0)
 		if err != nil {
 			return myjson.ArrayValue{}, errors.Join(err)
 		}
-        println("value:" + value.ToJson(0))
 		arr = append(arr, value)
 		if err := readWhite(ctx); err != nil {
 			return myjson.ArrayValue{}, errors.Join(err)
@@ -233,10 +226,6 @@ func readStr(ctx *jsonContex) (myjson.StringValue, error) {
 	}
 	return myjson.StringValue{Value: str}, nil
 }
-
-// func readArr(ctx *jsonContex) (myjson.ArrayValue, error) {
-//
-// }
 
 // 状态机的状态，
 // 0 初始状态
