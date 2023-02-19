@@ -18,7 +18,7 @@ type NumValue struct {
 }
 
 func (v NumValue) ToJson(indent int) string {
-    return fmt.Sprint(v.Value)
+	return fmt.Sprint(v.Value)
 }
 
 type BooleanValue struct {
@@ -48,7 +48,7 @@ func (v ArrayValue) ToJson(indent int) string {
 	s := "["
 	for _, v := range v.Arr {
 		s += "\n"
-		s += genIndent(indent + 1) + v.ToJson(indent + 1)
+		s += genIndent(indent+1) + v.ToJson(indent+1)
 		s += ","
 	}
 	s += "\n" + genIndent(indent) + "]"
@@ -64,7 +64,7 @@ func (v JsonObject) ToJson(indent int) string {
 	s := "{"
 	for k, v := range tab {
 		s += "\n"
-		s += genIndent(indent + 1) + "\"" + k + "\" : "
+		s += genIndent(indent+1) + "\"" + k + "\" : "
 		s += v.ToJson(indent + 1)
 		s += ","
 	}
@@ -78,5 +78,5 @@ type JsonValue interface {
 
 func genIndent(indent int) string {
 	s := "    "
-	return strings.Repeat(s,indent)
+	return strings.Repeat(s, indent)
 }
