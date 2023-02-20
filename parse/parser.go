@@ -204,6 +204,7 @@ func readNum(ctx *jsonContex) (myjson.NumValue,error) {
     return myjson.NumValue{},errors.New("not supported type")
 }
 
+// walk through all the white space from given point,until a non white character show
 func readWhite(ctx *jsonContex) error {
 	for {
 		r, err := ctx.getCurr()
