@@ -244,6 +244,7 @@ func readNumInner(ctx *jsonContex, state int64) (string, error) {
 	return "", errors.New("not supported type")
 }
 
+// walk through all the white space from given point,until a non white character show
 func readWhite(ctx *jsonContex) error {
 	for {
 		r, err := ctx.getCurr()
