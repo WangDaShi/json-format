@@ -1,6 +1,7 @@
 package myjson
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -14,11 +15,11 @@ func (v StringValue) ToJson(indent int) string {
 }
 
 type NumValue struct {
-	Value float32
+	Value string
 }
 
 func (v NumValue) ToJson(indent int) string {
-	return fmt.Sprint(v.Value)
+	return v.Value
 }
 
 type BooleanValue struct {
@@ -57,16 +58,28 @@ func (v ArrayValue) ToJson(indent int) string {
 
 type JsonObject struct {
 	Data map[string]JsonValue
+	Keys []string
+}
+
+func (o *JsonObject) Add(key string, v *JsonValue) error {
+    if _,ok := o.Data[key]; ok {
+        return errors.New(fmt.Sprintf("key %s already exist !",key))
+    }
+	o.Keys = append(o.Keys, key)
+	o.Data[key] = *v
+    return nil
 }
 
 func (v JsonObject) ToJson(indent int) string {
-	tab := v.Data
 	s := "{"
-	for k, v := range tab {
-		s += "\n"
-		s += genIndent(indent+1) + "\"" + k + "\" : "
-		s += v.ToJson(indent + 1)
-		s += ","
+	l := len(v.Keys)
+	for i := 0; i < l; i++ {
+        key := v.Keys[i]
+        value := v.Data[key].ToJson(indent + 1)
+        s += fmt.Sprintf("\n%s\"%s\" : %s",genIndent(indent+1),key,value)
+        if i < l -1 {
+            s += ","
+        }
 	}
 	s += "\n" + genIndent(indent) + "}"
 	return s

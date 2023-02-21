@@ -61,7 +61,7 @@ func (v *jsonContex) subString(a int64, b int64) string {
 func readObj(ctx *jsonContex) (myjson.JsonObject, error) {
 	m := make(map[string]myjson.JsonValue)
 	obj := myjson.JsonObject{Data: m}
-	if err := readObjStr(ctx, 0, obj); err != nil {
+	if err := readObjInner(ctx, &obj); err != nil {
 		return obj, errors.Join(err)
 	}
 	return obj, nil
@@ -87,58 +87,56 @@ func readArr(ctx *jsonContex) (myjson.ArrayValue, error) {
 			return myjson.ArrayValue{}, errors.Join(err)
 		}
 		curr, _ = ctx.getCurr()
-        if curr == ',' {
-            ctx.incr()
-        }
+		if curr == ',' {
+			ctx.incr()
+		}
 		if err := readWhite(ctx); err != nil {
 			return myjson.ArrayValue{}, errors.Join(err)
 		}
 	}
 	if curr == ']' {
-        ctx.incr()
+		ctx.incr()
 		return myjson.ArrayValue{Arr: arr}, nil
 	} else {
 		return myjson.ArrayValue{}, errors.New("arr end upexpected")
 	}
 }
 
-func readObjStr(ctx *jsonContex, state int64, obj myjson.JsonObject) error {
-	if state == 0 {
-		if err := readWhite(ctx); err != nil {
-			return errors.Join(err)
-		}
-		r, err := ctx.getCurr()
-		if r != '{' {
-			return errors.Join(err)
-		} else {
-			return readObjStr(ctx, 1, obj)
-		}
+func readObjInner(ctx *jsonContex, obj *myjson.JsonObject) error {
+	if err := readWhite(ctx); err != nil {
+		return errors.Join(err)
 	}
-	if state == 1 {
-		ctx.incr()
+	r, err := ctx.getCurr()
+	if r != '{' {
+		return errors.Join(err)
+	}
+	ctx.incr()
+	if err := readWhite(ctx); err != nil {
+		return errors.Join(err)
+	}
+	curChar, _ := ctx.getCurr()
+	for curChar != '}' {
+		k, v, err := readKeyValue(ctx)
+		if err != nil {
+			return err
+		}
+		err2 := obj.Add(k, &v)
+		if err2 != nil {
+			return errors.Join(err2)
+		}
+		// obj.Data[k] = v
 		if err := readWhite(ctx); err != nil {
 			return errors.Join(err)
 		}
-		curChar, _ := ctx.getCurr()
-		for curChar != '}' {
-			k, v, err := readKeyValue(ctx)
-			if err != nil {
-				return err
-			}
-			obj.Data[k] = v
+		if k, _ := ctx.getCurr(); k == ',' {
+			ctx.incr()
 			if err := readWhite(ctx); err != nil {
 				return errors.Join(err)
 			}
-			if k, _ := ctx.getCurr(); k == ',' {
-				ctx.incr()
-				if err := readWhite(ctx); err != nil {
-					return errors.Join(err)
-				}
-			}
-			curChar, _ = ctx.getCurr()
 		}
-		return nil
+		curChar, _ = ctx.getCurr()
 	}
+	ctx.incr()
 	return nil
 }
 
@@ -197,11 +195,53 @@ func readValue(ctx *jsonContex, state int64) (myjson.JsonValue, error) {
 		ctx.Index += 5
 		return myjson.BooleanValue{Value: false}, nil
 	}
-    return readNum(ctx)
+	return readNum(ctx)
 }
 
-func readNum(ctx *jsonContex) (myjson.NumValue,error) {
-    return myjson.NumValue{},errors.New("not supported type")
+func readNum(ctx *jsonContex) (myjson.NumValue, error) {
+	str, err := readNumInner(ctx,0)
+	if err != nil {
+		return myjson.NumValue{}, errors.New("not supported type")
+	}
+	return myjson.NumValue{Value: str}, nil
+}
+
+func readNumInner(ctx *jsonContex, state int64) (string, error) {
+    // curr,err := ctx.getCurr()
+    // if state == 0 {
+    //     if curr == '-' {
+    //         ctx.incr()
+    //     }
+    //     state = 1
+    // }
+    // if state == 1 {
+    //     if curr == '0' {
+    //         ctx.incr()
+    //         state = 2
+    //     }else if curr >= '1' && curr <= '9' {
+    //         state = 3
+    //     }else {
+    //         return "",errors.New("unexpected char")
+    //     }
+    // }
+    // if state == 3 {
+    //     for curr >= '0' && curr <= '9' {
+    //         ctx.incr()
+    //     }
+    //     state = 2
+    // }
+    // if state == 2 {
+    //     if curr == '.' {
+    //         state = 4
+    //     }else {
+    //         state = 5
+    //     }
+    // }
+    // if state == 7 {
+    //     return "", nil
+    // }
+
+	return "", errors.New("not supported type")
 }
 
 func readWhite(ctx *jsonContex) error {
