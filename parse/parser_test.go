@@ -12,7 +12,7 @@ const parseFile = "test_parse.json"
 // TODO 逗号没有检查的问题
 // 顺序的问题
 // 数字的问题
-func TestParse(t *testing.T) {
+func TestParse2(t *testing.T) {
 	folder := tool.GetProjectFolder() + "/parse/"
 	content := tool.ReadString(folder + parseFile)
 	obj, err := Parse(content)

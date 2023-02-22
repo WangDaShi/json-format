@@ -199,49 +199,114 @@ func readValue(ctx *jsonContex, state int64) (myjson.JsonValue, error) {
 }
 
 func readNum(ctx *jsonContex) (myjson.NumValue, error) {
-	str, err := readNumInner(ctx,0)
+	str, err := readNumInner(ctx, 0)
 	if err != nil {
-		return myjson.NumValue{}, errors.New("not supported type")
+		return myjson.NumValue{}, errors.Join(err)
 	}
 	return myjson.NumValue{Value: str}, nil
 }
 
 func readNumInner(ctx *jsonContex, state int64) (string, error) {
-    // curr,err := ctx.getCurr()
-    // if state == 0 {
-    //     if curr == '-' {
-    //         ctx.incr()
-    //     }
-    //     state = 1
-    // }
-    // if state == 1 {
-    //     if curr == '0' {
-    //         ctx.incr()
-    //         state = 2
-    //     }else if curr >= '1' && curr <= '9' {
-    //         state = 3
-    //     }else {
-    //         return "",errors.New("unexpected char")
-    //     }
-    // }
-    // if state == 3 {
-    //     for curr >= '0' && curr <= '9' {
-    //         ctx.incr()
-    //     }
-    //     state = 2
-    // }
-    // if state == 2 {
-    //     if curr == '.' {
-    //         state = 4
-    //     }else {
-    //         state = 5
-    //     }
-    // }
-    // if state == 7 {
-    //     return "", nil
-    // }
-
-	return "", errors.New("not supported type")
+	start := ctx.Index
+	defaultErr := errors.New("number end unexpected")
+	for state != 7 {
+		curr, err := ctx.getCurr()
+		if err != nil {
+			return "", defaultErr
+		}
+		if state == 0 {
+			if curr == '-' {
+				ctx.incr()
+			}
+			state = 1
+			continue
+		}
+		if state == 1 {
+			if curr == '0' {
+				ctx.incr()
+				state = 2
+				continue
+			} else if curr >= '1' && curr <= '9' {
+				ctx.incr()
+				state = 3
+				continue
+			} else {
+				return "", defaultErr
+			}
+		}
+		if state == 3 {
+			for curr >= '0' && curr <= '9' {
+				ctx.incr()
+				curr, err = ctx.getCurr()
+				if err != nil {
+					return "", defaultErr
+				}
+			}
+			state = 2
+			continue
+		}
+		if state == 2 {
+			if curr == '.' {
+				ctx.incr()
+				state = 4
+			} else {
+				state = 5
+			}
+			continue
+		}
+		if state == 4 {
+			if curr < '0' && curr > '9' {
+				return "", defaultErr
+			}
+			ctx.incr()
+			for curr >= '0' && curr <= '9' {
+				ctx.incr()
+				curr, err = ctx.getCurr()
+				if err != nil {
+					return "", defaultErr
+				}
+			}
+			state = 5
+			continue
+		}
+		if state == 5 {
+			if curr == 'e' || curr == 'E' {
+    			ctx.incr()
+				state = 6
+			} else {
+				state = 7
+			}
+			continue
+		}
+		if state == 6 {
+			if curr != '+' && curr != '-' {
+				return "", defaultErr
+			}
+			ctx.incr()
+			curr, err = ctx.getCurr()
+			if err != nil {
+				return "", defaultErr
+			}
+			if curr < '0' && curr > '9' {
+				return "", defaultErr
+			}
+			ctx.incr()
+			curr, err = ctx.getCurr()
+			if err != nil {
+				return "", defaultErr
+			}
+			for curr >= '0' && curr <= '9' {
+				ctx.incr()
+				curr, err = ctx.getCurr()
+				if err != nil {
+					return "", defaultErr
+				}
+			}
+			state = 7
+			continue
+		}
+	}
+	return ctx.subString(start, ctx.Index), nil
 }
 
 // walk through all the white space from given point,until a non white character show

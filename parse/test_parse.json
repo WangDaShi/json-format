@@ -5,9 +5,7 @@
     "key8" : "tale",
     "key4" : false,
     "arr" : [
-        "lalalal",
-        "dududud"
-        true,
+        "lalalal",3435.7899,true,
     false,
         null
     ],
@@ -20,8 +18,10 @@
     "key5" : null
     },
 
-    "key10" : "duldjdkdjldkjlkjljljljljl",
-    "key11" : "duldjdkdjldkjlkjljljljljl",
+    "key10" : 123,
+    "key11" : 0,
+    "key12" : -1,
+    "key13" : -0.123E+35
 
 }
 
