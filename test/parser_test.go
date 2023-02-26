@@ -1,7 +1,8 @@
-package parse
+package test
 
 import (
 	"json/format/tool"
+	"json/format/parse"
 	"testing"
 )
 
@@ -13,9 +14,9 @@ const parseFile = "test_parse.json"
 // 顺序的问题
 // 数字的问题
 func TestParse2(t *testing.T) {
-	folder := tool.GetProjectFolder() + "/parse/"
+	folder := tool.GetProjectFolder() + "/test/file/"
 	content := tool.ReadString(folder + parseFile)
-	obj, err := Parse(content)
+	obj, err := parse.Parse(content)
 	if err != nil {
 		panic(err)
 	}
@@ -24,7 +25,7 @@ func TestParse2(t *testing.T) {
 }
 
 func testString2(t *testing.T) {
-	folder := tool.GetProjectFolder() + "/parse/"
+	folder := tool.GetProjectFolder() + "/test/file/"
 	line := tool.ReadLine(folder + successFile)
 	for _, str := range line {
 		testString(str, true, t)
@@ -37,8 +38,8 @@ func testString2(t *testing.T) {
 
 func testString(str string, expected bool, t *testing.T) {
 	rr := []rune(str)
-	ctx := jsonContex{Runes: rr, Index: 0}
-	value, err := SolveString(&ctx)
+	ctx := parse.JsonContex{Runes: rr, Index: 0}
+	value, err := parse.SolveString(&ctx)
 	acc := err == nil
 	if err == nil {
 		println(value)
@@ -49,7 +50,7 @@ func testString(str string, expected bool, t *testing.T) {
 }
 
 func testParse(t *testing.T, input string, expectedOutput string) {
-	output, err := Parse(input)
+	output, err := parse.Parse(input)
 	if err != nil {
 		panic(err)
 	}

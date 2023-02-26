@@ -1,9 +1,8 @@
 package parse
 
 import (
-	"errors"
+    "errors"
 	"fmt"
-	"json/format/myjson"
 	"math"
 	"os"
 )
@@ -26,83 +25,84 @@ func check(err error) {
 	}
 }
 
-func Parse(content string) (myjson.JsonObject, error) {
+func Parse(content string) (JsonObject, error) {
 	runes := []rune(content)
-	ctx := jsonContex{Runes: runes, Index: 0}
+	ctx := JsonContex{Runes: runes, Index: 0}
 	return readObj(&ctx)
 }
 
 // read a json string from given position,
 // and generate the first json part
 type reader interface {
-	read(ctx *jsonContex) myjson.JsonValue
+	read(ctx *JsonContex) JsonValue
 }
 
-type jsonContex struct {
+type JsonContex struct {
 	Runes []rune
 	Index int64
 }
 
-func (v *jsonContex) getCurr() (rune, error) {
+func (v *JsonContex) getCurr() (rune, error) {
 	if v.Index >= int64(len(v.Runes)) {
 		return ' ', errors.New("string end unexpected")
 	}
 	return v.Runes[v.Index], nil
 }
 
-func (v *jsonContex) incr() {
+func (v *JsonContex) incr() {
 	v.Index++
 }
 
-func (v *jsonContex) subString(a int64, b int64) string {
+func (v *JsonContex) subString(a int64, b int64) string {
 	return string(v.Runes[a:b])
 }
 
-func readObj(ctx *jsonContex) (myjson.JsonObject, error) {
-	m := make(map[string]myjson.JsonValue)
-	obj := myjson.JsonObject{Data: m}
+func readObj(ctx *JsonContex) (JsonObject, error) {
+	m := make(map[string]JsonValue)
+	obj := JsonObject{Data: m}
 	if err := readObjInner(ctx, &obj); err != nil {
+        
 		return obj, errors.Join(err)
 	}
 	return obj, nil
 }
 
-func readArr(ctx *jsonContex) (myjson.ArrayValue, error) {
+func readArr(ctx *JsonContex) (ArrayValue, error) {
 	ctx.incr()
 	if err := readWhite(ctx); err != nil {
-		return myjson.ArrayValue{}, errors.Join(err)
+		return ArrayValue{}, errors.Join(err)
 	}
-	arr := []myjson.JsonValue{}
+	arr := []JsonValue{}
 	curr, _ := ctx.getCurr()
 	if curr == ']' {
-		return myjson.ArrayValue{Arr: arr}, nil
+		return ArrayValue{Arr: arr}, nil
 	}
 	for curr != ']' {
 		value, err := readValue(ctx, 0)
 		if err != nil {
-			return myjson.ArrayValue{}, errors.Join(err)
+			return ArrayValue{}, errors.Join(err)
 		}
 		arr = append(arr, value)
 		if err := readWhite(ctx); err != nil {
-			return myjson.ArrayValue{}, errors.Join(err)
+			return ArrayValue{}, errors.Join(err)
 		}
 		curr, _ = ctx.getCurr()
 		if curr == ',' {
 			ctx.incr()
 		}
 		if err := readWhite(ctx); err != nil {
-			return myjson.ArrayValue{}, errors.Join(err)
+			return ArrayValue{}, errors.Join(err)
 		}
 	}
 	if curr == ']' {
 		ctx.incr()
-		return myjson.ArrayValue{Arr: arr}, nil
+		return ArrayValue{Arr: arr}, nil
 	} else {
-		return myjson.ArrayValue{}, errors.New("arr end upexpected")
+		return ArrayValue{}, errors.New("arr end upexpected")
 	}
 }
 
-func readObjInner(ctx *jsonContex, obj *myjson.JsonObject) error {
+func readObjInner(ctx *JsonContex, obj *JsonObject) error {
 	if err := readWhite(ctx); err != nil {
 		return errors.Join(err)
 	}
@@ -140,31 +140,31 @@ func readObjInner(ctx *jsonContex, obj *myjson.JsonObject) error {
 	return nil
 }
 
-func readKeyValue(ctx *jsonContex) (string, myjson.JsonValue, error) {
+func readKeyValue(ctx *JsonContex) (string, JsonValue, error) {
 	if err := readWhite(ctx); err != nil {
-		return "", myjson.JsonObject{}, errors.Join(err)
+		return "", JsonObject{}, errors.Join(err)
 	}
 	key, err := readString(ctx, 0, ctx.Index)
 	if err != nil {
-		return "", myjson.JsonObject{}, errors.Join(err)
+		return "", JsonObject{}, errors.Join(err)
 	}
 	if err := readWhite(ctx); err != nil {
-		return "", myjson.JsonObject{}, errors.Join(err)
+		return "", JsonObject{}, errors.Join(err)
 	}
 	if r, _ := ctx.getCurr(); r != ':' {
-		return "", myjson.JsonObject{}, errors.New("errr while parse :")
+		return "", JsonObject{}, errors.New("errr while parse :")
 	}
 	ctx.incr()
 	value, err := readValue(ctx, 0)
 	if err != nil {
-		return "", myjson.JsonObject{}, errors.Join(err)
+		return "", JsonObject{}, errors.Join(err)
 	}
 	return key, value, nil
 }
 
-func readValue(ctx *jsonContex, state int64) (myjson.JsonValue, error) {
+func readValue(ctx *JsonContex, state int64) (JsonValue, error) {
 	if err := readWhite(ctx); err != nil {
-		return myjson.JsonObject{}, errors.Join(err)
+		return JsonObject{}, errors.Join(err)
 	}
 	c, _ := ctx.getCurr()
 	if c == '"' {
@@ -184,29 +184,29 @@ func readValue(ctx *jsonContex, state int64) (myjson.JsonValue, error) {
 	next := ctx.subString(ctx.Index, ctx.Index+4)
 	if next == "true" {
 		ctx.Index += 4
-		return myjson.BooleanValue{Value: true}, nil
+		return BooleanValue{Value: true}, nil
 	}
 	if next == "null" {
 		ctx.Index += 4
-		return myjson.NullValue{}, nil
+		return NullValue{}, nil
 	}
 	next = ctx.subString(ctx.Index, ctx.Index+5)
 	if next == "false" {
 		ctx.Index += 5
-		return myjson.BooleanValue{Value: false}, nil
+		return BooleanValue{Value: false}, nil
 	}
-	return readNum(ctx)
+	return ReadNum(ctx)
 }
 
-func readNum(ctx *jsonContex) (myjson.NumValue, error) {
+func ReadNum(ctx *JsonContex) (NumValue, error) {
 	str, err := readNumInner(ctx, 0)
 	if err != nil {
-		return myjson.NumValue{}, errors.Join(err)
+		return NumValue{}, errors.Join(err)
 	}
-	return myjson.NumValue{Value: str}, nil
+	return NumValue{Value: str}, nil
 }
 
-func readNumInner(ctx *jsonContex, state int64) (string, error) {
+func readNumInner(ctx *JsonContex, state int64) (string, error) {
 	start := ctx.Index
 	defaultErr := errors.New("number end unexpected")
 	for state != 7 {
@@ -310,7 +310,7 @@ func readNumInner(ctx *jsonContex, state int64) (string, error) {
 }
 
 // walk through all the white space from given point,until a non white character show
-func readWhite(ctx *jsonContex) error {
+func readWhite(ctx *JsonContex) error {
 	for {
 		r, err := ctx.getCurr()
 		if err != nil {
@@ -325,12 +325,12 @@ func readWhite(ctx *jsonContex) error {
 	return nil
 }
 
-func readStr(ctx *jsonContex) (myjson.StringValue, error) {
+func readStr(ctx *JsonContex) (StringValue, error) {
 	str, err := readString(ctx, 0, ctx.Index)
 	if err != nil {
-		return myjson.StringValue{}, errors.Join(err)
+		return StringValue{}, errors.Join(err)
 	}
-	return myjson.StringValue{Value: str}, nil
+	return StringValue{Value: str}, nil
 }
 
 // 状态机的状态，
@@ -339,7 +339,7 @@ func readStr(ctx *jsonContex) (myjson.StringValue, error) {
 // 2 遇到转义字符
 // 3 遇到结束的"
 // MAX 出错
-func readString(ctx *jsonContex, state int64, start int64) (string, error) {
+func readString(ctx *JsonContex, state int64, start int64) (string, error) {
 	for state == 0 {
 		r, err := ctx.getCurr()
 		if err != nil {
@@ -407,7 +407,7 @@ var specChar = map[rune]bool{
 	't':  true,
 }
 
-func SolveString(ctx *jsonContex) (string, error) {
+func SolveString(ctx *JsonContex) (string, error) {
 	fmt.Println()
 	str, error := readString(ctx, 0, ctx.Index)
 	if error != nil {

@@ -1,7 +1,8 @@
-package parse
+package test
 
 import (
 	"testing"
+    "json/format/parse"
 )
 
 func TestNum2(t *testing.T) {
@@ -16,12 +17,12 @@ func TestNum2(t *testing.T) {
 
 func testNum(str string,expected string,t *testing.T) {
     r := []rune(str)
-    ctx := jsonContex{Runes: r,Index: 0}
-    str2,err := readNumInner(&ctx,0)
+    ctx := parse.JsonContex{Runes: r,Index: 0}
+    numV,err := parse.ReadNum(&ctx)
     if err != nil {
         t.Fail()
     }
-    if str2 != expected {
+    if numV.Value != expected {
         t.Fail()
     }
 }

@@ -1,4 +1,4 @@
-package myjson
+package parse
 
 import (
 	"errors"
